@@ -1,0 +1,62 @@
+body {
+    background: #222;
+    color: #fff;
+    overflow-x: hidden;
+}
+h1 {
+    font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, sans-serif;
+}
+a {
+    color: orange;
+}
+a:hover {
+    color: lightblue;
+    text-decoration: none;
+}
+.modal {
+    overflow: auto;
+    color: #333;
+}
+
+.portfolio-item {
+	margin-bottom: 25px;
+    width: 200px;
+    height: 200px;
+}
+
+.portfolio-album {
+    width: 324px;
+    height: 324px;
+}
+
+.thumbnail {
+    background: #222;
+    border-color: #222;
+    min-width: 210px;
+    min-height: 210px;
+    width: 210px;
+    height: 210px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.img-responsive {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.photo-thumbnails {
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+.portfolio-section {
+    margin-bottom: 100px;
+}
+
+a.thumbnail:hover,
+a.thumbnail:focus,
+a.thumbnail.active {
+  border-color: #000;
+}
