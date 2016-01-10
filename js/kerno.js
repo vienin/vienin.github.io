@@ -168,6 +168,20 @@ var buildPortfolio = function (index) {
     //     .appendTo(portfoliocontainer);
 }
 
+var buildMenu = function (photo) {
+    $("<div/>")
+        .css("border-radius", "25px")
+        .append($('<img/>')
+            .addClass("featurette-image")
+            .addClass("img-responsive")
+            .addClass("pull-right")
+            .css("margin-top", "-240px")
+            .prop('src', photo)
+        )
+        .prependTo($('#menu'))
+
+}
+
 // Mode is the way how to the script retrieve the photo (files|facebook)
 // TODO: Design an architecture based on backend types
 var mode = "facebook"
@@ -175,80 +189,65 @@ var mode = "facebook"
 $(function() {
     portfoliocontainer = $('<div/>').addClass("row").appendTo($('#portfolio-container'));
 
-    if (mode == "facebook") {
-        var appID = "908471955878576";
-        var appSecret = "52520b77a9c88c82263003b877d68d45";
-        var tokenUrl = "https://graph.facebook.com/oauth/access_token?client_id=" + appID +
-                       "&client_secret=" + appSecret +
-                       "&grant_type=client_credentials";
+    var appID = "908471955878576";
+    var appSecret = "52520b77a9c88c82263003b877d68d45";
+    var tokenUrl = "https://graph.facebook.com/oauth/access_token?client_id=" + appID +
+                   "&client_secret=" + appSecret +
+                   "&grant_type=client_credentials";
 
-        $.get(tokenUrl, function(accessToken) {
-            var indexUrl = "https://graph.facebook.com/1039179642777962/albums?" + accessToken;
-            $.getJSON(indexUrl, function(albumsList) {
-                // Add the images as links with thumbnails to the page:
-                var count = 0;
-
-                // Build the index from the facebook page albums
-                blackList = [ "Profile Pictures", "Cover Photos" ]
-                $.each(albumsList.data, function (album) {
-                    album = albumsList.data[album]
-
-                    if ($.inArray(album.name, blackList) > -1) { return true ; }
-
-                    // Build the list of the photos url indexed by thumbs url
-                    var photos = {}
-                    var albumUrl = "https://graph.facebook.com/" + album.id + "/photos?" + accessToken;
-                    $.getJSON(albumUrl, function(photosList) {
-                       $.each(photosList.data, function (photo) {
-                            photo = photosList.data[photo]
-                            var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
-                            photos[photo.source.replace("s720x720", "p206x206")] = photoUrl;
-                        })
-
-                        // Build the ablum from the facebook page albums photos
-                        buildAlbum(album.name, photos, count);
-
-                        count++;
+    // Get the token
+    $.get(tokenUrl, function(accessToken) {
+        var postsUrl = "https://graph.facebook.com/972308122822575/posts?" + accessToken;
+        // Get all posts all search the first one about the menu
+        // NOTE: The api do not provides the url of the pdf menu yet
+        $.getJSON(postsUrl, function(postList) {
+            $.each(postList.data, function (post) {
+                post = postList.data[post];
+                if (post.message && post.message.toLowerCase().indexOf("menu") >= 0) {
+                    // Get the image of the menu
+                    photoUrl = "https://graph.facebook.com/" + post.object_id + "?" + accessToken;
+                    $.getJSON(photoUrl, function(photo) {
+                        buildMenu(photo.source);
                     })
+                    return false;
+                }
+            })
+        })
+
+        var albumsUrl = "https://graph.facebook.com/972308122822575/albums?" + accessToken;
+
+        // Get all page ablums, and build each photos sections
+        $.getJSON(albumsUrl, function(albumsList) {
+            // Add the images as links with thumbnails to the page:
+            var count = 0;
+
+            // Build the index from the facebook page albums
+            blackList = [ "Profile Pictures", "Cover Photos", "Timeline Photos" ]
+            $.each(albumsList.data, function (album) {
+                album = albumsList.data[album]
+
+                if ($.inArray(album.name, blackList) > -1) { return true ; }
+
+                // Build the list of the photos url indexed by thumbs url
+                var photos = {}
+                var albumUrl = "https://graph.facebook.com/" + album.id + "/photos?" + accessToken;
+                $.getJSON(albumUrl, function(photosList) {
+                   $.each(photosList.data, function (photo) {
+                        photo = photosList.data[photo]
+                        var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
+                        photos[photo.source.replace("s720x720", "p206x206")] = photoUrl;
+                    })
+
+                    // Build the ablum from the facebook page albums photos
+                    if (Object.keys(photos).length > 0) {
+                        buildAlbum(album.name, photos, count);
+                    }
+
+                    count++;
                 })
             })
         })
-    }
-    else {
-        var indexUrl = "http://www.paulin-lemelle.com/photos/index.json";
-
-        var formatIndex = function (index) {
-            var formatedIndex = {}
-            $.each(index, function (album) {
-                var photoIndex = {}
-                $.each(index[album], function () {
-                    var photo = this;
-                    var thumb = photo.split(".")[0] + "_tn.jpg";
-                    var baseurl = 'http://www.paulin-lemelle.com/photos/' + encodeURIComponent(album) + "/";
-
-                    photoIndex[ baseurl + "thumbs/" + thumb ] = baseurl + photo
-                })
-                formatedIndex[album] = photoIndex
-            })
-            console.log(formatedIndex)
-            return formatedIndex;
-        }
-
-        // Try to get the JSON file via usual way
-        $.getJSON(indexUrl, function(index){
-            // Build the portfolio from the json index result
-            buildPortfolio(formatIndex(index));
-        })
-        .error(function() {
-            console.warn("Unable to retrieve the json index from " + indexUrl +
-                         ", using json proxy http://jsonp.jit.su/");
-            // If error can not retrieve the JSON file, use the jsonp.jit proxy
-            // (usualy cause No 'Access-Control-Allow-Origin' header error)
-            $.getJSON('http://jsonp.jit.su/?callback=?&url=' + indexUrl, function(index){
-                buildPortfolio(formatIndex(index));
-            })
-        })
-    }
+    })
 
     $('#blueimp-gallery').data('useBootstrapModal', 0);
 });

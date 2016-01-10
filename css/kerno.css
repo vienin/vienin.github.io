@@ -60,3 +60,7 @@ a.thumbnail:focus,
 a.thumbnail.active {
   border-color: #000;
 }
+
+.text-muted {
+  color: #999;
+}
