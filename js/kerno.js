@@ -169,7 +169,7 @@ var buildPortfolio = function (index) {
 }
 
 var buildMenu = function (photo) {
-    $("<div/>")
+    console.log($("<div/>")
         .css("border-radius", "25px")
         .append($('<img/>')
             .addClass("featurette-image")
@@ -178,7 +178,7 @@ var buildMenu = function (photo) {
             .css("margin-top", "-240px")
             .prop('src', photo)
         )
-        .prependTo($('#menu'))
+        .prependTo($('#menu')))
 
 }
 
@@ -196,22 +196,14 @@ $(function() {
                    "&grant_type=client_credentials";
 
     // Get the token
-    $.get(tokenUrl, function(accessToken) {
-        var postsUrl = "https://graph.facebook.com/972308122822575/posts?" + accessToken;
+    $.get(tokenUrl, function(accessTokenData) {
+        var accessToken = "access_token=" + accessTokenData.access_token
+        var menusUrl = "https://graph.facebook.com/1399682133418503/photos?" + accessToken;
         // Get all posts all search the first one about the menu
         // NOTE: The api do not provides the url of the pdf menu yet
-        $.getJSON(postsUrl, function(postList) {
-            $.each(postList.data, function (post) {
-                post = postList.data[post];
-                if (post.message && post.message.toLowerCase().indexOf("menu") >= 0) {
-                    // Get the image of the menu
-                    photoUrl = "https://graph.facebook.com/" + post.object_id + "?" + accessToken;
-                    $.getJSON(photoUrl, function(photo) {
-                        buildMenu(photo.source);
-                    })
-                    return false;
-                }
-            })
+        $.getJSON(menusUrl, function(menuList) {
+            buildMenu(menuList.data[menuList.data.length - 1].source);
+            return false;
         })
 
         var albumsUrl = "https://graph.facebook.com/972308122822575/albums?" + accessToken;
@@ -222,7 +214,7 @@ $(function() {
             var count = 0;
 
             // Build the index from the facebook page albums
-            blackList = [ "Profile Pictures", "Cover Photos", "Timeline Photos" ]
+            blackList = [ "Profile Pictures", "Cover Photos", "Timeline Photos", "Menu de la semaine" ]
             $.each(albumsList.data, function (album) {
                 album = albumsList.data[album]
 
@@ -235,11 +227,12 @@ $(function() {
                    $.each(photosList.data, function (photo) {
                         photo = photosList.data[photo]
                         var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
-                        photos[photo.source.replace("s720x720", "p206x206")] = photoUrl;
+                        photos[photo.images[photo.images.length - 2].source] = photoUrl;
                     })
 
                     // Build the ablum from the facebook page albums photos
-                    if (Object.keys(photos).length > 0) {
+                    var photos_sources = Object.keys(photos)
+                    if (photos_sources.length > 0) {
                         buildAlbum(album.name, photos, count);
                     }
 
