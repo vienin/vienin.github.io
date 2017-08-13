@@ -169,7 +169,7 @@ var buildPortfolio = function (index) {
 }
 
 var buildMenu = function (photo) {
-    console.log($("<div/>")
+    $("<div/>")
         .css("border-radius", "25px")
         .append($('<img/>')
             .addClass("featurette-image")
@@ -178,8 +178,7 @@ var buildMenu = function (photo) {
             .css("margin-top", "-240px")
             .prop('src', photo)
         )
-        .prependTo($('#menu')))
-
+        .prependTo($('#menu'))
 }
 
 // Mode is the way how to the script retrieve the photo (files|facebook)
@@ -202,7 +201,8 @@ $(function() {
         // Get all posts all search the first one about the menu
         // NOTE: The api do not provides the url of the pdf menu yet
         $.getJSON(menusUrl, function(menuList) {
-            buildMenu(menuList.data[menuList.data.length - 1].source);
+            photo = menuList.data[menuList.data.length - 1]
+            buildMenu("https://graph.facebook.com/" + photo.id + "/picture?" + accessToken);
             return false;
         })
 
@@ -227,7 +227,7 @@ $(function() {
                    $.each(photosList.data, function (photo) {
                         photo = photosList.data[photo]
                         var photoUrl = "https://graph.facebook.com/" + photo.id + "/picture?" + accessToken;
-                        photos[photo.images[photo.images.length - 2].source] = photoUrl;
+                        photos[photoUrl] = photoUrl;
                     })
 
                     // Build the ablum from the facebook page albums photos
